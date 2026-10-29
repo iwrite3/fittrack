@@ -1,0 +1,31 @@
+server:
+  port: 8083
+spring:
+
+  data:
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/fitnessrecommendation}
+    database: fitnessrecommendation
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+rabbitmq:
+  exchange:
+    name: fitness.exchange
+  queue:
+    name: activity.queue
+  routing:
+    key: activity.tracking
+deepseek:
+  api:
+    url: ${DEEPSEEK_API_URL:https://api.deepseek.com/chat/completions}
+    key: ${DEEPSEEK_API_KEY}
+    model: ${DEEPSEEK_MODEL:deepseek-flash}

@@ -1,0 +1,5 @@
+# Used for every Java service. Build the jar first (see build-jars.ps1); this just packages it.
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY target/*.jar app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
