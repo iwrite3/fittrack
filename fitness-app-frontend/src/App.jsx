@@ -3,34 +3,68 @@ import { AuthContext } from 'react-oauth2-code-pkce';
 import { useDispatch } from 'react-redux';
 import { setCredentials, logout } from './store/authSlice';
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
-import { AppBar, Box, Button, Card, CircularProgress, Container, Toolbar, Typography } from '@mui/material';
+import { Alert, AppBar, Box, Button, Card, CircularProgress, Container, Toolbar, Typography } from '@mui/material';
 import ActivityForm from './components/ActivityForm';
 import ActivityList from './components/ActivityList';
 import ActivityDetail from './components/ActivityDetail';
 import StatsCards from './components/StatsCards';
-import { getActivities } from './services/api';
+import { getActivities, getUserRecommendations } from './services/api';
+import { isRecent } from './utils/stats';
 
 const ActivitiesPage = () => {
   const [activities, setActivities] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [loadError, setLoadError] = useState(null);
+  // { activityId: kcal } taken from the AI recommendations
+  const [calorieMap, setCalorieMap] = useState({});
 
   // Load the user's activities on first render and again whenever a new one is added
   useEffect(() => {
     getActivities()
-      .then((res) => setActivities(res.data || []))
-      .catch((error) => console.error('Error fetching activities:', error));
+      .then((res) => { setActivities(res.data || []); setLoadError(null); })
+      .catch((error) => {
+        console.error('Error fetching activities:', error);
+        const status = error.response ? error.response.status : 'no response';
+        setLoadError(`Could not load your history (${status}). Check that the gateway and services are running.`);
+      });
   }, [refreshKey]);
+
+  // The AI writes calories a few seconds after the save, so ask again until every recent activity has one
+  useEffect(() => {
+    if (activities.length === 0) return undefined;
+    const userId = localStorage.getItem('userId');
+    let cancelled = false;
+    let timer;
+    let tries = 0;
+    const load = async () => {
+      try {
+        const res = await getUserRecommendations(userId);
+        if (cancelled) return;
+        const map = {};
+        (res.data || []).forEach((r) => { map[r.activityId] = r.caloriesBurned ?? null; });
+        setCalorieMap(map);
+        tries += 1;
+        const waiting = activities.some((a) => !(a.id in map) && isRecent(a));
+        if (waiting && tries < 20) timer = setTimeout(load, 4000);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+      }
+    };
+    load();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [activities]);
 
   return (
     <Box sx={{ display: 'grid', gap: 3 }}>
-      <StatsCards activities={activities} />
+      {loadError && <Alert severity="error">{loadError}</Alert>}
+      <StatsCards activities={activities} calorieMap={calorieMap} />
       <Card sx={{ p: 3 }}>
         <Typography variant="h5" sx={{ mb: 2 }}>Log a workout</Typography>
         <ActivityForm onActivityAdded={() => setRefreshKey((k) => k + 1)} />
       </Card>
       <Card sx={{ p: 3 }}>
         <Typography variant="h5" sx={{ mb: 2 }}>History</Typography>
-        <ActivityList activities={activities} />
+        <ActivityList activities={activities} calorieMap={calorieMap} />
       </Card>
     </Box>
   );

@@ -19,6 +19,8 @@ public class Recommendation {
     private String activityId;
     private String activityType;
     private String userId;
+    // AI estimate of calories burned for this activity (null if the AI did not give one)
+    private Integer caloriesBurned;
     private String  recommendation;
     private List<String> improvements;
     private List<String>  safety;

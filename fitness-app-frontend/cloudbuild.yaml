@@ -1,0 +1,8 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: ["build",
+           "--build-arg","VITE_API_URL=${_API_URL}",
+           "--build-arg","VITE_KEYCLOAK_URL=${_KC_URL}",
+           "--build-arg","VITE_REDIRECT_URI=${_SITE_URL}/",
+           "-t","${_IMAGE}","."]
+images: ["${_IMAGE}"]

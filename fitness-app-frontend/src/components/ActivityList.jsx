@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import {
   Box, Button, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography,
 } from '@mui/material';
-import { formatDate, getActivityDate } from '../utils/stats';
+import { formatDate, getActivityDate, isRecent } from '../utils/stats';
 
 // Shows the history table. The activities come from the parent (ActivitiesPage).
-const ActivityList = ({ activities }) => {
+const ActivityList = ({ activities, calorieMap = {} }) => {
   const navigate = useNavigate();
 
   if (activities.length === 0) {
@@ -28,7 +28,7 @@ const ActivityList = ({ activities }) => {
           <TableRow>
             <TableCell>Activity</TableCell>
             <TableCell align="right">Time (min)</TableCell>
-            <TableCell align="right">Calories burned</TableCell>
+            <TableCell align="right">Calories (est.)</TableCell>
             <TableCell>Date</TableCell>
             <TableCell />
           </TableRow>
@@ -40,7 +40,11 @@ const ActivityList = ({ activities }) => {
                 <Chip label={a.type} color="primary" variant="outlined" size="small" />
               </TableCell>
               <TableCell align="right">{a.duration}</TableCell>
-              <TableCell align="right">{a.caloriesBurned} kcal</TableCell>
+              <TableCell align="right">
+                {calorieMap[a.id] != null
+                  ? `${calorieMap[a.id]} kcal`
+                  : (!(a.id in calorieMap) && isRecent(a) ? 'Calculating…' : '—')}
+              </TableCell>
               <TableCell>{formatDate(a)}</TableCell>
               <TableCell align="right">
                 <Button size="small" onClick={(e) => { e.stopPropagation(); navigate(`/activities/${a.id}`); }}>

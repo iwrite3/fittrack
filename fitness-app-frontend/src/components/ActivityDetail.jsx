@@ -82,9 +82,13 @@ const ActivityDetail = () => {
         <Card sx={{ p: 2 }}>
             <CardContent>
                 <Typography variant="h5" gutterBottom>Activity Details</Typography>
-                <Typography variant="body1">Type: {activity.type}</Typography>
+                <Typography variant="body1">Activity: {activity.type}</Typography>
                 <Typography variant="body1">Duration: {activity.duration} minutes</Typography>
-                <Typography variant="body1">Calories Burned: {activity.caloriesBurned}</Typography>
+                <Typography variant="body1">
+                    Calories Burned (AI estimate):{' '}
+                    {recommendations ? (recommendations.caloriesBurned != null ? `${recommendations.caloriesBurned} kcal` : '—')
+                        : (aiLoading ? 'calculating…' : '—')}
+                </Typography>
             </CardContent>
         </Card>
 
@@ -102,6 +106,10 @@ const ActivityDetail = () => {
                 ) : recommendations ? (
                     <>
                         {/* Mapped to MongoDB "recommendation" field */}
+                        <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
+                            Estimated calories burned:{' '}
+                            {recommendations.caloriesBurned != null ? `${recommendations.caloriesBurned} kcal` : 'not available'}
+                        </Typography>
                         <Typography variant="h6" sx={{ mt: 2 }}>Overall Analysis</Typography>
                         <Typography paragraph>{recommendations.recommendation}</Typography>
                         

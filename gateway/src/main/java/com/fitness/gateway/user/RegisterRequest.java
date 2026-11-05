@@ -18,6 +18,11 @@ public class RegisterRequest {
     private String keycloakId;
     private String firstName;
     private String lastName;
+    // Biometrics read from Keycloak token claims (may be null if the claim is missing)
+    private Integer age;
+    private Double weight;
+    private Double height;
+    private String gender;
 
 
 }

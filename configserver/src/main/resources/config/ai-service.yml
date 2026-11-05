@@ -24,8 +24,8 @@ rabbitmq:
     name: activity.queue
   routing:
     key: activity.tracking
-deepseek:
+openrouter:
   api:
-    url: ${DEEPSEEK_API_URL:https://api.deepseek.com/chat/completions}
-    key: ${DEEPSEEK_API_KEY}
-    model: ${DEEPSEEK_MODEL:deepseek-flash}
+    url: ${OPENROUTER_API_URL:https://openrouter.ai/api/v1/chat/completions}
+    key: ${OPENROUTER_API_KEY}
+    model: ${OPENROUTER_MODEL:nvidia/nemotron-3.5-super-vl:free}

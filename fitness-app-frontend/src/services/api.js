@@ -33,4 +33,7 @@ export const addActivity = (activity) => api.post('/activities', activity);
 export const getActivityDetail = (id) => api.get(`/activities/${id}`);
 
 // 2. Fetch the AI data from the RecommendationController
+// All AI recommendations of one user (used for the calories column and stats)
+export const getUserRecommendations = (userId) => api.get(`/recommendations/user/${userId}`);
+
 export const getActivityRecommendation = (id) => api.get(`/recommendations/activity/${id}`);

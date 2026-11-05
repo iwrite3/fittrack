@@ -13,7 +13,11 @@ public class Activity {
     private String userId;
 private String type;
     private Integer duration;
-    private Integer caloriesBurned;
+    // User biometrics sent by activity-service in the event
+    private Integer age;
+    private Double weight;   // kg
+    private Double height;   // cm
+    private String gender;
     private LocalDateTime startTime;
 
     private Map<String , Object> additionalMetrics;

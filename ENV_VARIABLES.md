@@ -11,6 +11,6 @@
 | DDL_AUTO | user-service | update |
 | KEYCLOAK_URL | gateway | http://localhost:8181 |
 | CORS_ALLOWED_ORIGINS | gateway (property cors.allowed-origins) | http://localhost:5173 |
-| DEEPSEEK_API_KEY | ai-service | none - required |
-| DEEPSEEK_API_URL / DEEPSEEK_MODEL | ai-service | https://api.deepseek.com/chat/completions / deepseek-flash |
+| OPENROUTER_API_KEY | ai-service | none - required |
+| OPENROUTER_API_URL / OPENROUTER_MODEL | ai-service | https://openrouter.ai/api/v1/chat/completions / nvidia/nemotron-3.5-super-vl:free |
 | VITE_API_URL / VITE_KEYCLOAK_URL / VITE_REDIRECT_URI | frontend (build time) | localhost values |

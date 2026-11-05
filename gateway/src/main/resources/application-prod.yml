@@ -1,0 +1,26 @@
+# Cloud Run profile. Activate with SPRING_PROFILES_ACTIVE=prod
+server:
+  port: ${PORT:8080}
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # issuer-uri = what the token's "iss" must equal (Keycloak PUBLIC URL + realm)
+          issuer-uri: ${KEYCLOAK_URL}/realms/fitness-oauth2
+          # jwk-set-uri = where to fetch keys; setting it means no discovery call at startup
+          jwk-set-uri: ${KEYCLOAK_URL}/realms/fitness-oauth2/protocol/openid-connect/certs
+  cloud:
+    gateway:
+      routes:
+        - id: activity-service
+          uri: ${ACTIVITY_SERVICE_URL}
+          predicates: [ "Path=/api/activities,/api/activities/**" ]
+        - id: user-service
+          uri: ${USER_SERVICE_URL}
+          predicates: [ "Path=/api/users/**" ]
+        - id: ai-service
+          uri: ${AI_SERVICE_URL}
+          predicates: [ "Path=/api/recommendations/**" ]
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}

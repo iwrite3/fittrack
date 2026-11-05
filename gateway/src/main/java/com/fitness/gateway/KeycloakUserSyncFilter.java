@@ -38,15 +38,11 @@ public class KeycloakUserSyncFilter implements WebFilter {
             log.info("User sync check: keycloakId={}, email={}", finalUserId,
                     registerRequest != null ? registerRequest.getEmail() : null);
 
-            Mono<Void> sync = userService.validateUser(finalUserId)
-                    .flatMap(exist -> {
-                        if (!exist && registerRequest != null) {
-                            log.info("User not found in user-service, registering {}", registerRequest.getEmail());
-                            return userService.registerUser(registerRequest).then();
-                        }
-                        log.info("User already exists (or no details to register), skipping sync");
-                        return Mono.<Void>empty();
-                    });
+            // register is an upsert: it creates a new user, or updates the biometrics
+            // (age, weight, height, gender) of an existing one when the token carries them.
+            Mono<Void> sync = registerRequest != null
+                    ? userService.registerUser(registerRequest).then()
+                    : Mono.<Void>empty();
 
             return sync
                     .thenReturn(true)
@@ -79,6 +75,22 @@ public class KeycloakUserSyncFilter implements WebFilter {
         return response.writeWith(Mono.just(response.bufferFactory().wrap(bytes)));
     }
 
+    // Keycloak attributes arrive as strings (or numbers). Accept "70", 70, or "70 kg"; return null if unreadable.
+    private Double toDouble(Object value) {
+        if (value == null) return null;
+        try {
+            String text = value.toString().replaceAll("[^0-9.]", "");
+            return text.isEmpty() ? null : Double.valueOf(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private Integer toInteger(Object value) {
+        Double d = toDouble(value);
+        return d == null ? null : d.intValue();
+    }
+
     private RegisterRequest getUserDetails(String token) {
         try {
             String tokenWithoutBearer = token.replace("Bearer ", "").trim();
@@ -90,6 +102,10 @@ public class KeycloakUserSyncFilter implements WebFilter {
             registerRequest.setPassword("dummy@123123");
             registerRequest.setFirstName(claims.getStringClaim("given_name"));
             registerRequest.setLastName(claims.getStringClaim("family_name"));
+            registerRequest.setGender(claims.getStringClaim("gender"));
+            registerRequest.setAge(toInteger(claims.getClaim("age")));
+            registerRequest.setWeight(toDouble(claims.getClaim("weight")));
+            registerRequest.setHeight(toDouble(claims.getClaim("height")));
             return registerRequest;
         } catch (Exception e) {
             log.error("Could not read user details from token", e);

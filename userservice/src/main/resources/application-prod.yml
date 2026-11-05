@@ -1,0 +1,14 @@
+server:
+  port: ${PORT:8081}
+spring:
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      minimum-idle: 0
+      maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    database-platform: org.hibernate.dialect.PostgreSQLDialect

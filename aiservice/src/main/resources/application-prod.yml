@@ -1,0 +1,25 @@
+server:
+  port: ${PORT:8083}
+spring:
+  # Spring Boot 4 renamed these to spring.mongodb.*; the old spring.data.mongodb.* is kept too for safety
+  mongodb:
+    uri: ${MONGODB_URI}
+    database: fitnessrecommendation
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: fitnessrecommendation
+  rabbitmq:
+    addresses: ${RABBITMQ_URL}
+rabbitmq:
+  exchange:
+    name: fitness.exchange
+  queue:
+    name: activity.queue
+  routing:
+    key: activity.tracking
+openrouter:
+  api:
+    url: ${OPENROUTER_API_URL:https://openrouter.ai/api/v1/chat/completions}
+    key: ${OPENROUTER_API_KEY}
+    model: ${OPENROUTER_MODEL:nvidia/nemotron-3.5-super-vl:free}

@@ -1,4 +1,5 @@
 package com.fitness.activityservice.config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
@@ -12,7 +13,9 @@ public class WebClientConfig {
         return WebClient.builder();
     }
     @Bean
-    public WebClient userServiceWebClient(WebClient.Builder webClientBuilder) {
-        return webClientBuilder.baseUrl("http://USER-SERVICE").build();
+    public WebClient userServiceWebClient(WebClient.Builder webClientBuilder,
+            @Value("${USER_SERVICE_URL:http://USER-SERVICE}") String userServiceUrl) {
+        // local: Eureka name. Cloud Run: the https URL of user-service
+        return webClientBuilder.baseUrl(userServiceUrl).build();
     }
 }

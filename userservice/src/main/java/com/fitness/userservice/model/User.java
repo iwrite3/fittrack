@@ -25,6 +25,11 @@ public class User {
     private String password;
     private String firstName;
     private String lastName;
+    // Biometrics from Keycloak (nullable: older users may not have them)
+    private Integer age;
+    private Double weight;   // kg
+    private Double height;   // cm
+    private String gender;
 
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.USER;

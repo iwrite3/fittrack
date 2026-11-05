@@ -1,5 +1,6 @@
 package com.fitness.activityservice.service;
 
+import com.fitness.activityservice.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,20 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class UserValidationService {
 
     private final WebClient userServiceWebClient;
+
+    // Best effort: if the profile cannot be loaded we still save the activity and just send no biometrics.
+    public UserProfile getUserProfile(String keycloakId) {
+        try {
+            return userServiceWebClient.get()
+                    .uri("/api/users/by-keycloak/" + keycloakId)
+                    .retrieve()
+                    .bodyToMono(UserProfile.class)
+                    .block();
+        } catch (Exception e) {
+            log.warn("Could not load profile for user {}: {}", keycloakId, e.getMessage());
+            return null;
+        }
+    }
 
     public boolean validateUser(String userId) {
         try {

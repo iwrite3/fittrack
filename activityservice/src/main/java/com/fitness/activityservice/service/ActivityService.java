@@ -1,7 +1,9 @@
 package com.fitness.activityservice.service;
 import org.springframework.beans.factory.annotation.Value;
 import com.fitness.activityservice.ActivityRepository;
+import com.fitness.activityservice.dto.ActivityEvent;
 import com.fitness.activityservice.dto.ActivityRequest;
+import com.fitness.activityservice.dto.UserProfile;
 import com.fitness.activityservice.dto.ActivityResponse;
 import com.fitness.activityservice.model.Activity;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,6 @@ public class ActivityService {
         }
 
         Activity activity = Activity.builder().userId(request.getUserId()).type(request.getType()).duration(request.getDuration())
-                .caloriesBurned(request.getCaloriesBurned())
                 .startTime(request.getStartTime())
                 .additionalMetrics(request.getAdditionalMetrics())
                 .build();
@@ -48,7 +49,22 @@ public class ActivityService {
 
     //publish to rabbitmq for AI processing
         try{
-           rabbitTemplate.convertAndSend(exchange , routingKey , savedActivity);
+           UserProfile profile = userValidationService.getUserProfile(savedActivity.getUserId());
+           ActivityEvent event = ActivityEvent.builder()
+                   .id(savedActivity.getId())
+                   .userId(savedActivity.getUserId())
+                   .type(savedActivity.getType())
+                   .duration(savedActivity.getDuration())
+                   .startTime(savedActivity.getStartTime())
+                   .additionalMetrics(savedActivity.getAdditionalMetrics())
+                   .createdAt(savedActivity.getCreatedAt())
+                   .updatedAt(savedActivity.getUpdatedAt())
+                   .age(profile != null ? profile.getAge() : null)
+                   .weight(profile != null ? profile.getWeight() : null)
+                   .height(profile != null ? profile.getHeight() : null)
+                   .gender(profile != null ? profile.getGender() : null)
+                   .build();
+           rabbitTemplate.convertAndSend(exchange , routingKey , event);
         }
         catch (Exception e )
         {
@@ -61,7 +77,6 @@ public class ActivityService {
         response.setId(activity.getId());
         response.setUserId(activity.getUserId());
     response.setType(activity.getType());
-    response.setCaloriesBurned(activity.getCaloriesBurned());
     response.setDuration(activity.getDuration());
     response.setStartTime(activity.getStartTime());
     response.setAdditionalMetrics(activity.getAdditionalMetrics());

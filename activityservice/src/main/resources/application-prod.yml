@@ -1,0 +1,17 @@
+server:
+  port: ${PORT:8082}
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: fitnessactivity
+  # RabbitMQ option (CloudAMQP): one URL, e.g. amqps://user:pass@host/vhost
+  rabbitmq:
+    addresses: ${RABBITMQ_URL}
+rabbitmq:
+  exchange:
+    name: fitness.exchange
+  queue:
+    name: activity.queue
+  routing:
+    key: activity.tracking

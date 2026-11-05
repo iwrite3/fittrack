@@ -29,6 +29,13 @@ public class UserController {
     public String sayHello() {
         return "Hello, welcome to the Fitness Microservice!";
     }
+    // Used by activity-service to get age/weight/height/gender for the AI prompt.
+    @GetMapping("/by-keycloak/{keycloakId}")
+    public ResponseEntity<UserResponse> getByKeycloakId(@PathVariable String keycloakId){
+        return userService.getByKeycloakId(keycloakId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
     @GetMapping("/{userId}")
     public ResponseEntity<UserResponse> getUserProfile(@PathVariable String userId){
 

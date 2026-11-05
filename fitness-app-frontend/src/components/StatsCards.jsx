@@ -9,10 +9,10 @@ const PERIODS = [
   { label: 'Last month', days: 30 },
 ];
 
-const StatsCards = ({ activities }) => (
+const StatsCards = ({ activities, calorieMap }) => (
   <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' } }}>
     {PERIODS.map((period, index) => {
-      const { calories, minutes, workouts } = summarize(activities, period.days);
+      const { calories, minutes, workouts } = summarize(activities, period.days, calorieMap);
       const highlighted = index === 0; // make the first card (Today) stand out
       return (
         <Card

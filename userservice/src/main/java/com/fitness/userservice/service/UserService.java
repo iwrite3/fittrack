@@ -3,63 +3,85 @@ import com.fitness.userservice.dto.RegisterRequest;
 import com.fitness.userservice.dto.UserResponse;
 import com.fitness.userservice.model.User;
 import com.fitness.userservice.repository.UserRepository;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 public class UserService {
     @Autowired
     private UserRepository repository;
-    public UserResponse register( RegisterRequest request) {
-        if(repository.existsByEmail(request.getEmail())){
-            User existingUser =   repository.findByEmail(request.getEmail());
-            UserResponse userResponse = new UserResponse();
-            userResponse.setId(existingUser.getId());
-            userResponse.setId(existingUser.getKeycloakId());
-            userResponse.setEmail(existingUser.getEmail());
-            userResponse.setPassword(existingUser.getPassword());
-            userResponse.setLastName(existingUser.getLastName());
-            userResponse.setFirstName(existingUser.getFirstName());
-            userResponse.setCreatedAt(existingUser.getCreatedAt());
-            userResponse.setUpdatedId(existingUser.getUpdatedId());
-    return userResponse;
+
+    // Upsert: creates the user, or (if the email exists) fills in any biometrics sent with the request.
+    public UserResponse register(RegisterRequest request) {
+        if (repository.existsByEmail(request.getEmail())) {
+            User existingUser = repository.findByEmail(request.getEmail());
+            boolean changed = applyBiometrics(existingUser, request);
+            if (changed) {
+                existingUser = repository.save(existingUser);
+            }
+            return mapToResponse(existingUser);
         }
-   User user = new User();
-    user.setEmail(request.getEmail());
-    user.setPassword(request.getPassword());
-    user.setFirstName(request.getFirstName());
-    user.setLastName(request.getLastName());
-    user.setKeycloakId(request.getKeycloakId());
-    User savedUser =   repository.save(user);
-    UserResponse userResponse = new UserResponse();
-        userResponse.setId(savedUser.getKeycloakId());
-    userResponse.setId(savedUser.getId());
-        userResponse.setEmail(savedUser.getEmail());
-        userResponse.setPassword(savedUser.getPassword());
-        userResponse.setLastName(savedUser.getLastName());
-        userResponse.setFirstName(savedUser.getFirstName());
-        userResponse.setCreatedAt(savedUser.getCreatedAt());
-        userResponse.setUpdatedId(savedUser.getUpdatedId());
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setKeycloakId(request.getKeycloakId());
+        applyBiometrics(user, request);
+        return mapToResponse(repository.save(user));
+    }
 
-return userResponse;
+    // Copies only the values that are present, so a token without the claims never wipes saved data.
+    private boolean applyBiometrics(User user, RegisterRequest request) {
+        boolean changed = false;
+        if (request.getAge() != null && !request.getAge().equals(user.getAge())) {
+            user.setAge(request.getAge());
+            changed = true;
+        }
+        if (request.getWeight() != null && !request.getWeight().equals(user.getWeight())) {
+            user.setWeight(request.getWeight());
+            changed = true;
+        }
+        if (request.getHeight() != null && !request.getHeight().equals(user.getHeight())) {
+            user.setHeight(request.getHeight());
+            changed = true;
+        }
+        if (request.getGender() != null && !request.getGender().equals(user.getGender())) {
+            user.setGender(request.getGender());
+            changed = true;
+        }
+        return changed;
+    }
 
-   }
-   public UserResponse getUserProfile(String userId){
+    public UserResponse getUserProfile(String userId) {
         User user = repository.findById(userId)
-       .orElseThrow(() ->new RuntimeException("User Not Found") );
+                .orElseThrow(() -> new RuntimeException("User Not Found"));
+        return mapToResponse(user);
+    }
 
-       UserResponse userResponse = new UserResponse();
-       userResponse.setId(user.getId());
-       userResponse.setEmail(user.getEmail());
-       userResponse.setPassword(user.getPassword());
-       userResponse.setLastName(user.getLastName());
-       userResponse.setFirstName(user.getFirstName());
-return userResponse;
-   }
+    public Optional<UserResponse> getByKeycloakId(String keycloakId) {
+        return repository.findByKeycloakId(keycloakId).map(this::mapToResponse);
+    }
 
     public Boolean existByUserId(String userId) {
         return repository.existsByKeycloakId(userId);
     }
-}
 
+    private UserResponse mapToResponse(User user) {
+        UserResponse r = new UserResponse();
+        r.setId(user.getId());
+        r.setKeycloakId(user.getKeycloakId());
+        r.setEmail(user.getEmail());
+        r.setFirstName(user.getFirstName());
+        r.setLastName(user.getLastName());
+        r.setAge(user.getAge());
+        r.setWeight(user.getWeight());
+        r.setHeight(user.getHeight());
+        r.setGender(user.getGender());
+        r.setCreatedAt(user.getCreatedAt());
+        r.setUpdatedId(user.getUpdatedId());
+        return r;
+    }
+}
